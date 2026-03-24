@@ -161,12 +161,207 @@ export type Database = {
         }
         Relationships: []
       }
+      pricing_run_items: {
+        Row: {
+          breakeven_basis_brl: number | null
+          combination_name: string | null
+          commodity: string | null
+          created_at: string | null
+          error_message: string | null
+          exchange_rate: number | null
+          futures_price: number | null
+          gross_price_brl: number | null
+          id: string
+          input_snapshot: Json
+          insurance_cost_brl: number | null
+          insurance_premium_brl: number | null
+          insurance_strategy: string | null
+          insurance_strike: number | null
+          is_promoted_to_operation: boolean
+          item_index: number
+          maturity: string | null
+          ndf_forward_rate: number | null
+          operation_id: string | null
+          origination_price_brl: number | null
+          payment_date: string | null
+          pricing_run_id: string
+          purchased_basis_brl: number | null
+          reception_date: string | null
+          result_snapshot: Json
+          sale_date: string | null
+          status: string
+          target_basis_brl: number | null
+          ticker: string | null
+          updated_at: string | null
+          volume: number | null
+          warehouse: string | null
+          warning_message: string | null
+        }
+        Insert: {
+          breakeven_basis_brl?: number | null
+          combination_name?: string | null
+          commodity?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          exchange_rate?: number | null
+          futures_price?: number | null
+          gross_price_brl?: number | null
+          id?: string
+          input_snapshot?: Json
+          insurance_cost_brl?: number | null
+          insurance_premium_brl?: number | null
+          insurance_strategy?: string | null
+          insurance_strike?: number | null
+          is_promoted_to_operation?: boolean
+          item_index: number
+          maturity?: string | null
+          ndf_forward_rate?: number | null
+          operation_id?: string | null
+          origination_price_brl?: number | null
+          payment_date?: string | null
+          pricing_run_id: string
+          purchased_basis_brl?: number | null
+          reception_date?: string | null
+          result_snapshot?: Json
+          sale_date?: string | null
+          status?: string
+          target_basis_brl?: number | null
+          ticker?: string | null
+          updated_at?: string | null
+          volume?: number | null
+          warehouse?: string | null
+          warning_message?: string | null
+        }
+        Update: {
+          breakeven_basis_brl?: number | null
+          combination_name?: string | null
+          commodity?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          exchange_rate?: number | null
+          futures_price?: number | null
+          gross_price_brl?: number | null
+          id?: string
+          input_snapshot?: Json
+          insurance_cost_brl?: number | null
+          insurance_premium_brl?: number | null
+          insurance_strategy?: string | null
+          insurance_strike?: number | null
+          is_promoted_to_operation?: boolean
+          item_index?: number
+          maturity?: string | null
+          ndf_forward_rate?: number | null
+          operation_id?: string | null
+          origination_price_brl?: number | null
+          payment_date?: string | null
+          pricing_run_id?: string
+          purchased_basis_brl?: number | null
+          reception_date?: string | null
+          result_snapshot?: Json
+          sale_date?: string | null
+          status?: string
+          target_basis_brl?: number | null
+          ticker?: string | null
+          updated_at?: string | null
+          volume?: number | null
+          warehouse?: string | null
+          warning_message?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_run_items_operation_id_fkey"
+            columns: ["operation_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pricing_run_items_pricing_run_id_fkey"
+            columns: ["pricing_run_id"]
+            isOneToOne: false
+            referencedRelation: "pricing_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pricing_runs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          daily_table_param_id: string | null
+          engine_name: string
+          engine_version: string | null
+          error_message: string | null
+          id: string
+          input_payload: Json
+          notes: string | null
+          output_summary: Json
+          requested_by: string | null
+          run_type: string
+          started_at: string | null
+          status: string
+          updated_at: string | null
+          warnings: Json
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          daily_table_param_id?: string | null
+          engine_name?: string
+          engine_version?: string | null
+          error_message?: string | null
+          id?: string
+          input_payload?: Json
+          notes?: string | null
+          output_summary?: Json
+          requested_by?: string | null
+          run_type?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string | null
+          warnings?: Json
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          daily_table_param_id?: string | null
+          engine_name?: string
+          engine_version?: string | null
+          error_message?: string | null
+          id?: string
+          input_payload?: Json
+          notes?: string | null
+          output_summary?: Json
+          requested_by?: string | null
+          run_type?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string | null
+          warnings?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_runs_daily_table_param_id_fkey"
+            columns: ["daily_table_param_id"]
+            isOneToOne: false
+            referencedRelation: "daily_table_params"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_pricing_run_from_daily_table: {
+        Args: { p_daily_table_param_id: string }
+        Returns: string
+      }
+      promote_pricing_run_item_to_operation: {
+        Args: { p_item_id: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
