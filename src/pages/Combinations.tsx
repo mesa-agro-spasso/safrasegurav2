@@ -10,7 +10,7 @@ import { Plus, Trash2, Save } from "lucide-react";
 import type { Combination, Commodity } from "@/types/pricing";
 
 export default function CombinationsPage() {
-  const { combinations, updateCombination, addCombination, removeCombination } = useAppStore();
+  const { combinations, updateCombination, addCombination, removeCombination, saveCombinationsToDb } = useAppStore();
 
   const handleAdd = () => {
     const newCombo: Combination = {
@@ -34,6 +34,10 @@ export default function CombinationsPage() {
       override_risk_premium: null,
     };
     addCombination(newCombo);
+  };
+
+  const handleSave = async () => {
+    await saveCombinationsToDb();
   };
 
   return (
