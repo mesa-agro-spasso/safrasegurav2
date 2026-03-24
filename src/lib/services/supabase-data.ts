@@ -29,7 +29,7 @@ export async function loadDailyTableParams(): Promise<DailyTableParamsRow> {
 export async function saveMarketData(marketData: MarketData) {
   const { error } = await supabase
     .from('daily_table_params')
-    .update({ market_data: marketData as unknown as Record<string, unknown> })
+    .update({ market_data: JSON.parse(JSON.stringify(marketData)) })
     .eq('id', 'default');
   if (error) throw error;
 }
@@ -37,7 +37,7 @@ export async function saveMarketData(marketData: MarketData) {
 export async function saveGlobalParams(params: GlobalParameters) {
   const { error } = await supabase
     .from('daily_table_params')
-    .update({ global_params: params as unknown as Record<string, unknown> })
+    .update({ global_params: JSON.parse(JSON.stringify(params)) })
     .eq('id', 'default');
   if (error) throw error;
 }
@@ -45,7 +45,7 @@ export async function saveGlobalParams(params: GlobalParameters) {
 export async function saveCombinations(combinations: Combination[]) {
   const { error } = await supabase
     .from('daily_table_params')
-    .update({ combinations: combinations as unknown as Record<string, unknown> })
+    .update({ combinations: JSON.parse(JSON.stringify(combinations)) })
     .eq('id', 'default');
   if (error) throw error;
 }
@@ -54,7 +54,7 @@ export async function saveResults(results: DailyTableData) {
   const { error } = await supabase
     .from('daily_table_params')
     .update({
-      results: results as unknown as Record<string, unknown>,
+      results: JSON.parse(JSON.stringify(results)),
       generated_at: results.generated_at,
     })
     .eq('id', 'default');
