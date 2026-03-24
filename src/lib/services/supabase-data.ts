@@ -134,9 +134,15 @@ export async function createOperationInDb(input: CreateOperationInput): Promise<
     legs,
   };
 
+  const insertRow = {
+    ...row,
+    costs_snapshot: JSON.parse(JSON.stringify(row.costs_snapshot)),
+    pricing_snapshot: JSON.parse(JSON.stringify(row.pricing_snapshot)),
+  };
+
   const { data, error } = await supabase
     .from('operations')
-    .insert(row)
+    .insert(insertRow)
     .select()
     .single();
 
