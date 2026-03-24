@@ -16,10 +16,13 @@ export default function Parameters() {
   const {
     globalParameters,
     setGlobalParameters,
+    saveGlobalParamsToDb,
     marketData,
     refreshMarketData,
+    saveMarketDataToDb,
     combinations,
     generateTable,
+    saveCombinationsToDb,
   } = useAppStore();
   const navigate = useNavigate();
 
@@ -29,13 +32,17 @@ export default function Parameters() {
     setParams((p) => ({ ...p, [key]: value }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setGlobalParameters(params);
+    await saveGlobalParamsToDb();
+    await saveCombinationsToDb();
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     setGlobalParameters(params);
-    generateTable();
+    await saveGlobalParamsToDb();
+    await saveCombinationsToDb();
+    await generateTable();
     navigate("/");
   };
 

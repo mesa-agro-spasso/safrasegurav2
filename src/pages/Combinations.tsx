@@ -10,7 +10,7 @@ import { Plus, Trash2, Save } from "lucide-react";
 import type { Combination, Commodity } from "@/types/pricing";
 
 export default function CombinationsPage() {
-  const { combinations, updateCombination, addCombination, removeCombination } = useAppStore();
+  const { combinations, updateCombination, addCombination, removeCombination, saveCombinationsToDb } = useAppStore();
 
   const handleAdd = () => {
     const newCombo: Combination = {
@@ -36,6 +36,10 @@ export default function CombinationsPage() {
     addCombination(newCombo);
   };
 
+  const handleSave = async () => {
+    await saveCombinationsToDb();
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -43,10 +47,16 @@ export default function CombinationsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Combinations</h1>
           <p className="text-muted-foreground text-sm mt-1">Gerenciamento de combinações de pricing</p>
         </div>
-        <Button onClick={handleAdd} size="sm">
-          <Plus className="h-4 w-4 mr-1" />
-          Adicionar
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleSave} variant="outline" size="sm">
+            <Save className="h-4 w-4 mr-1" />
+            Salvar
+          </Button>
+          <Button onClick={handleAdd} size="sm">
+            <Plus className="h-4 w-4 mr-1" />
+            Adicionar
+          </Button>
+        </div>
       </div>
 
       <Card>

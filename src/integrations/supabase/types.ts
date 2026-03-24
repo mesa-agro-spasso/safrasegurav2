@@ -14,7 +14,153 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      daily_table_params: {
+        Row: {
+          combinations: Json | null
+          generated_at: string | null
+          global_params: Json | null
+          id: string
+          market_data: Json | null
+          results: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          combinations?: Json | null
+          generated_at?: string | null
+          global_params?: Json | null
+          id: string
+          market_data?: Json | null
+          results?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          combinations?: Json | null
+          generated_at?: string | null
+          global_params?: Json | null
+          id?: string
+          market_data?: Json | null
+          results?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      insurance_profiles: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      operations: {
+        Row: {
+          account: string | null
+          breakeven_basis_brl: number | null
+          broker: string | null
+          commodity: string | null
+          costs_snapshot: Json | null
+          created_at: string | null
+          display_name: string | null
+          exchange_rate: number | null
+          futures_price: number | null
+          gross_price_brl: number | null
+          id: string
+          insurance_premium_brl: number | null
+          insurance_strategy: string | null
+          insurance_strike: number | null
+          legs: string | null
+          maturity: string | null
+          notes: string | null
+          operation_date: string | null
+          origination_price_brl: number | null
+          payment_date: string | null
+          pricing_snapshot: Json | null
+          purchased_basis_brl: number | null
+          sale_date: string | null
+          status: string | null
+          ticker: string | null
+          updated_at: string | null
+          volume: number | null
+          warehouse: string | null
+        }
+        Insert: {
+          account?: string | null
+          breakeven_basis_brl?: number | null
+          broker?: string | null
+          commodity?: string | null
+          costs_snapshot?: Json | null
+          created_at?: string | null
+          display_name?: string | null
+          exchange_rate?: number | null
+          futures_price?: number | null
+          gross_price_brl?: number | null
+          id?: string
+          insurance_premium_brl?: number | null
+          insurance_strategy?: string | null
+          insurance_strike?: number | null
+          legs?: string | null
+          maturity?: string | null
+          notes?: string | null
+          operation_date?: string | null
+          origination_price_brl?: number | null
+          payment_date?: string | null
+          pricing_snapshot?: Json | null
+          purchased_basis_brl?: number | null
+          sale_date?: string | null
+          status?: string | null
+          ticker?: string | null
+          updated_at?: string | null
+          volume?: number | null
+          warehouse?: string | null
+        }
+        Update: {
+          account?: string | null
+          breakeven_basis_brl?: number | null
+          broker?: string | null
+          commodity?: string | null
+          costs_snapshot?: Json | null
+          created_at?: string | null
+          display_name?: string | null
+          exchange_rate?: number | null
+          futures_price?: number | null
+          gross_price_brl?: number | null
+          id?: string
+          insurance_premium_brl?: number | null
+          insurance_strategy?: string | null
+          insurance_strike?: number | null
+          legs?: string | null
+          maturity?: string | null
+          notes?: string | null
+          operation_date?: string | null
+          origination_price_brl?: number | null
+          payment_date?: string | null
+          pricing_snapshot?: Json | null
+          purchased_basis_brl?: number | null
+          sale_date?: string | null
+          status?: string | null
+          ticker?: string | null
+          updated_at?: string | null
+          volume?: number | null
+          warehouse?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

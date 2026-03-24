@@ -1,18 +1,36 @@
 import { create } from 'zustand';
 import type { Combination, GlobalParameters, DailyTableData, Operation, MarketData } from '@/types/pricing';
-import { defaultGlobalParameters, defaultCombinations, sampleOperations } from './mock-data';
+import { defaultGlobalParameters } from './mock-data';
 import { getMarketData } from './services/market';
 import { generateDailyTable } from './services/pricing';
-import { createOperation, type CreateOperationInput } from './services/operations';
+import type { CreateOperationInput } from './services/operations';
+import {
+  loadDailyTableParams,
+  saveMarketData,
+  saveGlobalParams,
+  saveCombinations,
+  saveResults,
+  loadOperations,
+  createOperationInDb,
+  updateOperationStatusInDb,
+  loadInsuranceProfiles,
+  type InsuranceProfile,
+} from './services/supabase-data';
+import { toast } from 'sonner';
 
 interface AppState {
+  // Loading
+  isLoading: boolean;
+
   // Market
   marketData: MarketData;
   refreshMarketData: () => void;
+  saveMarketDataToDb: () => Promise<void>;
 
   // Parameters
   globalParameters: GlobalParameters;
   setGlobalParameters: (params: GlobalParameters) => void;
+  saveGlobalParamsToDb: () => Promise<void>;
 
   // Combinations
   combinations: Combination[];
@@ -20,25 +38,50 @@ interface AppState {
   updateCombination: (id: string, updates: Partial<Combination>) => void;
   addCombination: (combo: Combination) => void;
   removeCombination: (id: string) => void;
+  saveCombinationsToDb: () => Promise<void>;
 
   // Daily Table
   dailyTable: DailyTableData | null;
-  generateTable: () => void;
+  generateTable: () => Promise<void>;
 
   // Operations
   operations: Operation[];
-  addOperation: (input: CreateOperationInput) => void;
-  updateOperationStatus: (id: string, status: Operation['status']) => void;
+  addOperation: (input: CreateOperationInput) => Promise<void>;
+  updateOperationStatus: (id: string, status: Operation['status']) => Promise<void>;
+
+  // Insurance Profiles
+  insuranceProfiles: InsuranceProfile[];
+
+  // Init
+  loadFromSupabase: () => Promise<void>;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
+  isLoading: true,
+
   marketData: getMarketData(),
   refreshMarketData: () => set({ marketData: getMarketData() }),
+  saveMarketDataToDb: async () => {
+    try {
+      await saveMarketData(get().marketData);
+      toast.success('Market data salvo');
+    } catch (e: any) {
+      toast.error('Erro ao salvar market data: ' + e.message);
+    }
+  },
 
   globalParameters: defaultGlobalParameters,
   setGlobalParameters: (params) => set({ globalParameters: params }),
+  saveGlobalParamsToDb: async () => {
+    try {
+      await saveGlobalParams(get().globalParameters);
+      toast.success('Parâmetros salvos');
+    } catch (e: any) {
+      toast.error('Erro ao salvar parâmetros: ' + e.message);
+    }
+  },
 
-  combinations: defaultCombinations,
+  combinations: [],
   setCombinations: (combos) => set({ combinations: combos }),
   updateCombination: (id, updates) =>
     set((state) => ({
@@ -52,23 +95,76 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((state) => ({
       combinations: state.combinations.filter((c) => c.id !== id),
     })),
+  saveCombinationsToDb: async () => {
+    try {
+      await saveCombinations(get().combinations);
+      toast.success('Combinações salvas');
+    } catch (e: any) {
+      toast.error('Erro ao salvar combinações: ' + e.message);
+    }
+  },
 
   dailyTable: null,
-  generateTable: () => {
+  generateTable: async () => {
     const { combinations, globalParameters, marketData } = get();
     const table = generateDailyTable(combinations, globalParameters, marketData);
     set({ dailyTable: table });
+    try {
+      await saveResults(table);
+      toast.success('Tabela gerada e salva no Supabase');
+    } catch (e: any) {
+      toast.error('Erro ao salvar resultados: ' + e.message);
+    }
   },
 
-  operations: sampleOperations,
-  addOperation: (input) => {
-    const op = createOperation(input);
-    set((state) => ({ operations: [op, ...state.operations] }));
+  operations: [],
+  addOperation: async (input) => {
+    try {
+      const op = await createOperationInDb(input);
+      set((state) => ({ operations: [op, ...state.operations] }));
+      toast.success('Operação criada');
+    } catch (e: any) {
+      toast.error('Erro ao criar operação: ' + e.message);
+    }
   },
-  updateOperationStatus: (id, status) =>
-    set((state) => ({
-      operations: state.operations.map((op) =>
-        op.id === id ? { ...op, status } : op
-      ),
-    })),
+  updateOperationStatus: async (id, status) => {
+    try {
+      await updateOperationStatusInDb(id, status);
+      set((state) => ({
+        operations: state.operations.map((op) =>
+          op.id === id ? { ...op, status } : op
+        ),
+      }));
+    } catch (e: any) {
+      toast.error('Erro ao atualizar status: ' + e.message);
+    }
+  },
+
+  insuranceProfiles: [],
+
+  loadFromSupabase: async () => {
+    try {
+      const [params, ops, profiles] = await Promise.all([
+        loadDailyTableParams(),
+        loadOperations(),
+        loadInsuranceProfiles(),
+      ]);
+
+      const hasResults = params.results && 'results' in (params.results as any) && (params.results as any).results?.length > 0;
+
+      set({
+        marketData: params.market_data,
+        globalParameters: params.global_params,
+        combinations: params.combinations ?? [],
+        dailyTable: hasResults ? (params.results as unknown as DailyTableData) : null,
+        operations: ops,
+        insuranceProfiles: profiles,
+        isLoading: false,
+      });
+    } catch (e: any) {
+      console.error('Failed to load from Supabase:', e);
+      toast.error('Erro ao carregar dados do Supabase');
+      set({ isLoading: false });
+    }
+  },
 }));
