@@ -47,10 +47,16 @@ export default function CombinationsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Combinations</h1>
           <p className="text-muted-foreground text-sm mt-1">Gerenciamento de combinações de pricing</p>
         </div>
-        <Button onClick={handleAdd} size="sm">
-          <Plus className="h-4 w-4 mr-1" />
-          Adicionar
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleSave} variant="outline" size="sm">
+            <Save className="h-4 w-4 mr-1" />
+            Salvar
+          </Button>
+          <Button onClick={handleAdd} size="sm">
+            <Plus className="h-4 w-4 mr-1" />
+            Adicionar
+          </Button>
+        </div>
       </div>
 
       <Card>
