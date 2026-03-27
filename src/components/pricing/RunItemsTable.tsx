@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUpRight, Eye, Loader2 } from "lucide-react";
 import SnapshotViewer from "./SnapshotViewer";
-import { promoteItem } from "@/lib/services/pricing-engine";
+import { promoteItem, type PromoteToOperationResponse } from "@/lib/services/pricing-engine";
 import { toast } from "sonner";
 
 interface Props {
