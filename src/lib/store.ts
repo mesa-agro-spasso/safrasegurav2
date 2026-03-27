@@ -106,14 +106,15 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   dailyTable: null,
   generateTable: async () => {
-    const { combinations, globalParameters, marketData } = get();
-    const table = generateDailyTable(combinations, globalParameters, marketData);
-    set({ dailyTable: table });
     try {
-      await saveResults(table);
-      toast.success('Tabela gerada e salva no Supabase');
+      const result = await executePricing();
+      if (result.success) {
+        toast.success(`Pricing executado: ${result.calculated_items ?? 0} itens calculados`);
+      } else {
+        toast.error('Erro no pricing: ' + (result.error ?? 'desconhecido'));
+      }
     } catch (e: any) {
-      toast.error('Erro ao salvar resultados: ' + e.message);
+      toast.error('Erro ao executar pricing: ' + e.message);
     }
   },
 
