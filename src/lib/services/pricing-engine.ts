@@ -20,6 +20,27 @@ function preserveNumericTypes(obj: unknown): unknown {
   return obj;
 }
 
+// === Response types ===
+
+export interface ExecutePricingResponse {
+  success: boolean;
+  pricing_run_id?: string;
+  calculated_items?: number;
+  warning_count?: number;
+  engine_version?: string;
+  output_unit?: string;
+  error?: string;
+}
+
+export interface PromoteToOperationResponse {
+  success: boolean;
+  operation_id?: string;
+  already_promoted?: boolean;
+  error?: string;
+}
+
+// === Service functions ===
+
 export async function fetchDailyTableParams() {
   const { data, error } = await supabase
     .from("daily_table_params")
@@ -47,12 +68,12 @@ export async function updateDailyTableParams(
   if (error) throw error;
 }
 
-export async function executePricing(): Promise<{ success: boolean; pricing_run_id?: string; error?: string }> {
+export async function executePricing(): Promise<ExecutePricingResponse> {
   const { data, error } = await supabase.functions.invoke("run-daily-table", {
     body: { daily_table_param_id: "default" },
   });
   if (error) throw error;
-  return data as { success: boolean; pricing_run_id?: string; error?: string };
+  return data as ExecutePricingResponse;
 }
 
 export async function fetchPricingRuns() {
@@ -74,12 +95,12 @@ export async function fetchRunItems(runId: string) {
   return data ?? [];
 }
 
-export async function promoteItem(itemId: string): Promise<string> {
-  const { data, error } = await supabase.rpc("promote_pricing_run_item_to_operation", {
-    p_item_id: itemId,
+export async function promoteItem(itemId: string): Promise<PromoteToOperationResponse> {
+  const { data, error } = await supabase.functions.invoke("promote-to-operation", {
+    body: { pricing_run_item_id: itemId },
   });
   if (error) throw error;
-  return data as string;
+  return data as PromoteToOperationResponse;
 }
 
 export async function fetchOperations() {

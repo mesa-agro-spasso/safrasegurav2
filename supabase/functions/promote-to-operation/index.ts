@@ -12,11 +12,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { daily_table_param_id } = await req.json();
+    const { pricing_run_item_id } = await req.json();
 
-    if (!daily_table_param_id) {
+    if (!pricing_run_item_id) {
       return new Response(
-        JSON.stringify({ success: false, error: "daily_table_param_id is required" }),
+        JSON.stringify({ success: false, error: "pricing_run_item_id is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -25,9 +25,30 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { data: runId, error } = await supabase.rpc(
-      "create_pricing_run_from_daily_table",
-      { p_daily_table_param_id: daily_table_param_id }
+    // Check if already promoted
+    const { data: item, error: fetchError } = await supabase
+      .from("pricing_run_items")
+      .select("is_promoted_to_operation, operation_id")
+      .eq("id", pricing_run_item_id)
+      .single();
+
+    if (fetchError) {
+      return new Response(
+        JSON.stringify({ success: false, error: fetchError.message }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (item.is_promoted_to_operation && item.operation_id) {
+      return new Response(
+        JSON.stringify({ success: true, operation_id: item.operation_id, already_promoted: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { data: operationId, error } = await supabase.rpc(
+      "promote_pricing_run_item_to_operation",
+      { p_item_id: pricing_run_item_id }
     );
 
     if (error) {
@@ -38,25 +59,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch run details for enriched response
-    const { data: run } = await supabase
-      .from("pricing_runs")
-      .select("engine_version, output_summary, warnings")
-      .eq("id", runId)
-      .single();
-
-    const outputSummary = (run?.output_summary as Record<string, unknown>) ?? {};
-    const warnings = (run?.warnings as unknown[]) ?? [];
-
     return new Response(
-      JSON.stringify({
-        success: true,
-        pricing_run_id: runId,
-        calculated_items: outputSummary.items_created ?? 0,
-        warning_count: warnings.length,
-        engine_version: run?.engine_version ?? "unknown",
-        output_unit: "R$/sc",
-      }),
+      JSON.stringify({ success: true, operation_id: operationId }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
