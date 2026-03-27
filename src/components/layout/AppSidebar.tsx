@@ -1,4 +1,12 @@
-import { TableProperties, Settings2, Layers, ClipboardList } from "lucide-react";
+import {
+  LayoutDashboard,
+  PlusCircle,
+  LineChart,
+  ClipboardList,
+  Shield,
+  Database,
+  Settings,
+} from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -11,14 +19,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
+  SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
 
 const navItems = [
-  { title: "Daily Table", url: "/", icon: TableProperties },
-  { title: "Parameters", url: "/parameters", icon: Settings2 },
-  { title: "Combinations", url: "/combinations", icon: Layers },
-  { title: "Operations", url: "/operations", icon: ClipboardList },
+  { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Nova Simulação", url: "/nova-simulacao", icon: PlusCircle },
+  { title: "Simulações", url: "/simulacoes", icon: LineChart },
+  { title: "Operações", url: "/operacoes", icon: ClipboardList },
+  { title: "Hedges", url: "/hedges", icon: Shield },
+  { title: "Cadastros", url: "/cadastros", icon: Database },
+  { title: "Configurações", url: "/configuracoes", icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -30,25 +42,25 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
         {!collapsed ? (
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-sidebar-primary">
-              <TableProperties className="h-4 w-4 text-sidebar-primary-foreground" />
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+              <Shield className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-sidebar-accent-foreground">AgriPricing</h2>
-              <p className="text-xs text-sidebar-foreground">Sistema de Precificação</p>
+              <h2 className="text-sm font-bold tracking-tight text-sidebar-accent-foreground">Safra Segura</h2>
+              <p className="text-[11px] text-sidebar-foreground/70">Originação & Hedge</p>
             </div>
           </div>
         ) : (
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-sidebar-primary mx-auto">
-            <TableProperties className="h-4 w-4 text-sidebar-primary-foreground" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary mx-auto">
+            <Shield className="h-5 w-5 text-primary-foreground" />
           </div>
         )}
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navegação</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-widest">Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (
@@ -57,7 +69,7 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end={item.url === "/"}
-                      className="hover:bg-sidebar-accent"
+                      className="hover:bg-sidebar-accent transition-colors"
                       activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
                     >
                       <item.icon className="mr-2 h-4 w-4" />
@@ -70,6 +82,12 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter className="border-t border-sidebar-border px-4 py-3">
+        {!collapsed && (
+          <p className="text-[10px] text-sidebar-foreground/50 text-center">v2.0 — Engine Pricing</p>
+        )}
+      </SidebarFooter>
     </Sidebar>
   );
 }

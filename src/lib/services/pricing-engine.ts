@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
-// Recursively preserve numeric types when saving JSONB
+const db = supabase as any;
+
 function preserveNumericTypes(obj: unknown): unknown {
   if (obj === null || obj === undefined) return obj;
   if (Array.isArray(obj)) return obj.map(preserveNumericTypes);
@@ -13,14 +14,10 @@ function preserveNumericTypes(obj: unknown): unknown {
   }
   if (typeof obj === "string") {
     const trimmed = obj.trim();
-    if (trimmed !== "" && !isNaN(Number(trimmed))) {
-      return Number(trimmed);
-    }
+    if (trimmed !== "" && !isNaN(Number(trimmed))) return Number(trimmed);
   }
   return obj;
 }
-
-// === Response types ===
 
 export interface ExecutePricingResponse {
   success: boolean;
@@ -39,14 +36,8 @@ export interface PromoteToOperationResponse {
   error?: string;
 }
 
-// === Service functions ===
-
 export async function fetchDailyTableParams() {
-  const { data, error } = await supabase
-    .from("daily_table_params")
-    .select("*")
-    .eq("id", "default")
-    .single();
+  const { data, error } = await db.from("daily_table_params").select("*").eq("id", "default").single();
   if (error) throw error;
   return data;
 }
@@ -56,15 +47,12 @@ export async function updateDailyTableParams(
   global_params: Record<string, unknown>,
   combinations: unknown[]
 ) {
-  const { error } = await supabase
-    .from("daily_table_params")
-    .update({
-      market_data: preserveNumericTypes(market_data) as any,
-      global_params: preserveNumericTypes(global_params) as any,
-      combinations: preserveNumericTypes(combinations) as any,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", "default");
+  const { error } = await db.from("daily_table_params").update({
+    market_data: preserveNumericTypes(market_data),
+    global_params: preserveNumericTypes(global_params),
+    combinations: preserveNumericTypes(combinations),
+    updated_at: new Date().toISOString(),
+  }).eq("id", "default");
   if (error) throw error;
 }
 
@@ -77,20 +65,13 @@ export async function executePricing(): Promise<ExecutePricingResponse> {
 }
 
 export async function fetchPricingRuns() {
-  const { data, error } = await supabase
-    .from("pricing_runs")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const { data, error } = await supabase.from("pricing_runs").select("*").order("created_at", { ascending: false });
   if (error) throw error;
   return data ?? [];
 }
 
 export async function fetchRunItems(runId: string) {
-  const { data, error } = await supabase
-    .from("pricing_run_items")
-    .select("*")
-    .eq("pricing_run_id", runId)
-    .order("item_index", { ascending: true });
+  const { data, error } = await db.from("pricing_run_items").select("*").eq("pricing_run_id", runId).order("item_index", { ascending: true });
   if (error) throw error;
   return data ?? [];
 }
@@ -104,10 +85,7 @@ export async function promoteItem(itemId: string): Promise<PromoteToOperationRes
 }
 
 export async function fetchOperations() {
-  const { data, error } = await supabase
-    .from("operations")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const { data, error } = await supabase.from("operations").select("*").order("created_at", { ascending: false });
   if (error) throw error;
   return data ?? [];
 }

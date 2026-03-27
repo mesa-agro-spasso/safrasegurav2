@@ -13,25 +13,19 @@ import {
 export default function DailyTable() {
   const [activeTab, setActiveTab] = useState("daily-table");
   const [loading, setLoading] = useState(true);
-
-  // Daily table params state
   const [marketData, setMarketData] = useState<Record<string, unknown>>({});
   const [globalParams, setGlobalParams] = useState<Record<string, unknown>>({});
   const [combinations, setCombinations] = useState<Record<string, unknown>[]>([]);
-
-  // Pricing runs state
   const [runs, setRuns] = useState<Record<string, unknown>[]>([]);
   const [initialRunId, setInitialRunId] = useState<string | null>(null);
-
-  // Operations state
   const [operations, setOperations] = useState<Record<string, unknown>[]>([]);
 
   const loadParams = useCallback(async () => {
     try {
-      const data = await fetchDailyTableParams();
-      setMarketData((data.market_data as Record<string, unknown>) ?? {});
-      setGlobalParams((data.global_params as Record<string, unknown>) ?? {});
-      setCombinations(Array.isArray(data.combinations) ? (data.combinations as Record<string, unknown>[]) : []);
+      const data = await fetchDailyTableParams() as any;
+      setMarketData(data?.market_data ?? {});
+      setGlobalParams(data?.global_params ?? {});
+      setCombinations(Array.isArray(data?.combinations) ? data.combinations : []);
     } catch { /* empty */ }
   }, []);
 
@@ -42,7 +36,7 @@ export default function DailyTable() {
     } catch { /* empty */ }
   }, []);
 
-  const loadOperations = useCallback(async () => {
+  const loadOps = useCallback(async () => {
     try {
       const data = await fetchOperations();
       setOperations(data as Record<string, unknown>[]);
@@ -50,8 +44,8 @@ export default function DailyTable() {
   }, []);
 
   useEffect(() => {
-    Promise.all([loadParams(), loadRuns(), loadOperations()]).finally(() => setLoading(false));
-  }, [loadParams, loadRuns, loadOperations]);
+    Promise.all([loadParams(), loadRuns(), loadOps()]).finally(() => setLoading(false));
+  }, [loadParams, loadRuns, loadOps]);
 
   const handlePricingExecuted = async (runId: string) => {
     await loadRuns();
@@ -73,30 +67,18 @@ export default function DailyTable() {
         <h1 className="text-2xl font-bold tracking-tight">Daily Table</h1>
         <p className="text-muted-foreground text-sm mt-1">Precificação agrícola — parâmetros, execução e operações</p>
       </div>
-
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="daily-table">Daily Table</TabsTrigger>
           <TabsTrigger value="pricing-runs">Pricing Runs</TabsTrigger>
           <TabsTrigger value="operations">Operations</TabsTrigger>
         </TabsList>
-
         <TabsContent value="daily-table">
-          <DailyTableTab
-            marketData={marketData}
-            globalParams={globalParams}
-            combinations={combinations}
-            onMarketDataChange={setMarketData}
-            onGlobalParamsChange={setGlobalParams}
-            onCombinationsChange={setCombinations}
-            onPricingExecuted={handlePricingExecuted}
-          />
+          <DailyTableTab marketData={marketData} globalParams={globalParams} combinations={combinations} onMarketDataChange={setMarketData} onGlobalParamsChange={setGlobalParams} onCombinationsChange={setCombinations} onPricingExecuted={handlePricingExecuted} />
         </TabsContent>
-
         <TabsContent value="pricing-runs">
-          <PricingRunsTab runs={runs} initialRunId={initialRunId} onRefreshOperations={loadOperations} />
+          <PricingRunsTab runs={runs} initialRunId={initialRunId} onRefreshOperations={loadOps} />
         </TabsContent>
-
         <TabsContent value="operations">
           <OperationsTab operations={operations} />
         </TabsContent>
