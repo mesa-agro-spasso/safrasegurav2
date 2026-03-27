@@ -24,7 +24,7 @@ interface AppState {
 
   // Market
   marketData: MarketData;
-  refreshMarketData: () => void;
+  refreshMarketData: () => Promise<void>;
   saveMarketDataToDb: () => Promise<void>;
 
   // Parameters
