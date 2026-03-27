@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import type { Combination, GlobalParameters, DailyTableData, Operation, MarketData } from '@/types/pricing';
 import { defaultGlobalParameters } from './mock-data';
 import { getMarketData } from './services/market';
-import { generateDailyTable } from './services/pricing';
 import type { CreateOperationInput } from './services/operations';
 import {
   loadDailyTableParams,
@@ -16,6 +15,7 @@ import {
   loadInsuranceProfiles,
   type InsuranceProfile,
 } from './services/supabase-data';
+import { executePricing } from './services/pricing-engine';
 import { toast } from 'sonner';
 
 interface AppState {
@@ -24,7 +24,7 @@ interface AppState {
 
   // Market
   marketData: MarketData;
-  refreshMarketData: () => void;
+  refreshMarketData: () => Promise<void>;
   saveMarketDataToDb: () => Promise<void>;
 
   // Parameters
@@ -60,7 +60,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   isLoading: true,
 
   marketData: getMarketData(),
-  refreshMarketData: () => set({ marketData: getMarketData() }),
+  refreshMarketData: async () => {
+    try {
+      const params = await loadDailyTableParams();
+      set({ marketData: params.market_data });
+      toast.success('Dados de mercado atualizados');
+    } catch (e: any) {
+      toast.error('Erro ao atualizar dados de mercado: ' + e.message);
+    }
+  },
   saveMarketDataToDb: async () => {
     try {
       await saveMarketData(get().marketData);
@@ -106,14 +114,15 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   dailyTable: null,
   generateTable: async () => {
-    const { combinations, globalParameters, marketData } = get();
-    const table = generateDailyTable(combinations, globalParameters, marketData);
-    set({ dailyTable: table });
     try {
-      await saveResults(table);
-      toast.success('Tabela gerada e salva no Supabase');
+      const result = await executePricing();
+      if (result.success) {
+        toast.success(`Pricing executado: ${result.calculated_items ?? 0} itens calculados`);
+      } else {
+        toast.error('Erro no pricing: ' + (result.error ?? 'desconhecido'));
+      }
     } catch (e: any) {
-      toast.error('Erro ao salvar resultados: ' + e.message);
+      toast.error('Erro ao executar pricing: ' + e.message);
     }
   },
 
