@@ -60,7 +60,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   isLoading: true,
 
   marketData: getMarketData(),
-  refreshMarketData: () => set({ marketData: getMarketData() }),
+  refreshMarketData: async () => {
+    try {
+      const params = await loadDailyTableParams();
+      set({ marketData: params.market_data });
+      toast.success('Dados de mercado atualizados');
+    } catch (e: any) {
+      toast.error('Erro ao atualizar dados de mercado: ' + e.message);
+    }
+  },
   saveMarketDataToDb: async () => {
     try {
       await saveMarketData(get().marketData);
