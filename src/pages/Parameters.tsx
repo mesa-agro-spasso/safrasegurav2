@@ -224,18 +224,18 @@ export default function Parameters() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {combinations.map((c) => (
-                  <TableRow key={c.id}>
+              {combinations.map((c: any, idx: number) => (
+                  <TableRow key={c.id ?? idx}>
                     <TableCell>
                       <Badge variant={c.commodity === "soybean" ? "default" : "secondary"}>
                         {c.commodity === "soybean" ? "Soja" : "Milho"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-medium">{c.display_name}</TableCell>
-                    <TableCell>{c.warehouse}</TableCell>
-                    <TableCell className="font-mono text-sm">{c.ticker}</TableCell>
-                    <TableCell className="font-mono text-sm">{c.maturity}</TableCell>
-                    <TableCell className="font-mono text-sm text-right">{c.target_basis.toFixed(2)}</TableCell>
+                    <TableCell className="font-medium">{c.display_name ?? c.combination_name ?? "—"}</TableCell>
+                    <TableCell>{c.warehouse ?? "—"}</TableCell>
+                    <TableCell className="font-mono text-sm">{c.ticker ?? "—"}</TableCell>
+                    <TableCell className="font-mono text-sm">{c.maturity ?? "—"}</TableCell>
+                    <TableCell className="font-mono text-sm text-right">{typeof (c.target_basis ?? c.target_basis_brl) === "number" ? (c.target_basis ?? c.target_basis_brl).toFixed(2) : "—"}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
