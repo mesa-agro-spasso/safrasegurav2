@@ -44,7 +44,11 @@ export default function DailyTableTab({
       await updateDailyTableParams(marketData, globalParams, combinations);
       const result = await executePricing();
       if (result.success && result.pricing_run_id) {
-        toast.success("Pricing executado com sucesso!");
+        const items = result.calculated_items ?? 0;
+        const warns = result.warning_count ?? 0;
+        let msg = `Pricing executado! ${items} itens calculados.`;
+        if (warns > 0) msg += ` (${warns} avisos)`;
+        toast.success(msg);
         onPricingExecuted(result.pricing_run_id);
       } else {
         toast.error("Erro no pricing: " + (result.error ?? "Erro desconhecido"));

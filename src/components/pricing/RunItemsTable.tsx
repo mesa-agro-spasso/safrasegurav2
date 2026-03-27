@@ -46,9 +46,17 @@ export default function RunItemsTable({ items, onPromoted }: Props) {
   const handlePromote = async (itemId: string) => {
     setPromotingId(itemId);
     try {
-      await promoteItem(itemId);
-      toast.success("Operação criada com sucesso!");
-      onPromoted();
+      const result: PromoteToOperationResponse = await promoteItem(itemId);
+      if (result.success) {
+        if (result.already_promoted) {
+          toast.info("Esta operação já havia sido criada anteriormente.");
+        } else {
+          toast.success("Operação criada com sucesso!");
+        }
+        onPromoted();
+      } else {
+        toast.error("Erro ao promover: " + (result.error ?? "Erro desconhecido"));
+      }
     } catch (err: unknown) {
       toast.error("Erro ao promover: " + (err instanceof Error ? err.message : String(err)));
     } finally {
