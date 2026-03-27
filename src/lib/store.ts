@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import type { Combination, GlobalParameters, DailyTableData, Operation, MarketData } from '@/types/pricing';
 import { defaultGlobalParameters } from './mock-data';
 import { getMarketData } from './services/market';
-import { generateDailyTable } from './services/pricing';
 import type { CreateOperationInput } from './services/operations';
 import {
   loadDailyTableParams,
@@ -16,6 +15,7 @@ import {
   loadInsuranceProfiles,
   type InsuranceProfile,
 } from './services/supabase-data';
+import { executePricing } from './services/pricing-engine';
 import { toast } from 'sonner';
 
 interface AppState {
