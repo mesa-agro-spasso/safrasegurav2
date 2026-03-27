@@ -38,8 +38,25 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Fetch run details for enriched response
+    const { data: run } = await supabase
+      .from("pricing_runs")
+      .select("engine_version, output_summary, warnings")
+      .eq("id", runId)
+      .single();
+
+    const outputSummary = (run?.output_summary as Record<string, unknown>) ?? {};
+    const warnings = (run?.warnings as unknown[]) ?? [];
+
     return new Response(
-      JSON.stringify({ success: true, pricing_run_id: runId }),
+      JSON.stringify({
+        success: true,
+        pricing_run_id: runId,
+        calculated_items: outputSummary.items_created ?? 0,
+        warning_count: warnings.length,
+        engine_version: run?.engine_version ?? "unknown",
+        output_unit: "R$/sc",
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
