@@ -1,5 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 
+// Helper to bypass strict typing for tables not in generated types
+const db = supabase as any;
+
 // ===== PRICING INPUTS =====
 export async function fetchPricingInputs() {
   const { data, error } = await supabase
@@ -13,11 +16,30 @@ export async function fetchPricingInputs() {
 export async function createPricingInput(input: Record<string, unknown>) {
   const { data, error } = await supabase
     .from("pricing_inputs")
-    .insert(input)
+    .insert(input as any)
     .select()
     .single();
   if (error) throw error;
   return data;
+}
+
+// ===== DAILY TABLE PARAMS =====
+export async function fetchDailyTableParamsApi() {
+  const { data, error } = await db
+    .from("daily_table_params")
+    .select("*")
+    .eq("id", "default")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateDailyTableParamsApi(updates: Record<string, unknown>) {
+  const { error } = await db
+    .from("daily_table_params")
+    .update(updates)
+    .eq("id", "default");
+  if (error) throw error;
 }
 
 // ===== PRICING RUNS =====
@@ -38,6 +60,17 @@ export async function fetchPricingRunById(id: string) {
     .single();
   if (error) throw error;
   return data;
+}
+
+// ===== PRICING RUN ITEMS =====
+export async function fetchPricingRunItems(runId: string) {
+  const { data, error } = await db
+    .from("pricing_run_items")
+    .select("*")
+    .eq("pricing_run_id", runId)
+    .order("item_index", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
 }
 
 // ===== PRICING RESULTS =====
@@ -72,7 +105,7 @@ export async function fetchAllOperations() {
 }
 
 export async function updateOperationStatus(id: string, status: string) {
-  const { error } = await supabase.from("operations").update({ status }).eq("id", id);
+  const { error } = await supabase.from("operations").update({ status } as any).eq("id", id);
   if (error) throw error;
 }
 
@@ -93,7 +126,7 @@ export async function fetchCommodities() {
   return data ?? [];
 }
 export async function upsertCommodity(row: Record<string, unknown>) {
-  const { data, error } = await supabase.from("commodities").upsert(row).select().single();
+  const { data, error } = await supabase.from("commodities").upsert(row as any).select().single();
   if (error) throw error;
   return data;
 }
@@ -105,7 +138,7 @@ export async function fetchLocations() {
   return data ?? [];
 }
 export async function upsertLocation(row: Record<string, unknown>) {
-  const { data, error } = await supabase.from("locations").upsert(row).select().single();
+  const { data, error } = await supabase.from("locations").upsert(row as any).select().single();
   if (error) throw error;
   return data;
 }
@@ -117,7 +150,7 @@ export async function fetchCounterparties() {
   return data ?? [];
 }
 export async function upsertCounterparty(row: Record<string, unknown>) {
-  const { data, error } = await supabase.from("counterparties").upsert(row).select().single();
+  const { data, error } = await supabase.from("counterparties").upsert(row as any).select().single();
   if (error) throw error;
   return data;
 }
@@ -136,7 +169,7 @@ export async function fetchModelParameters() {
   return data ?? [];
 }
 export async function upsertModelParameter(row: Record<string, unknown>) {
-  const { data, error } = await supabase.from("model_parameters").upsert(row).select().single();
+  const { data, error } = await supabase.from("model_parameters").upsert(row as any).select().single();
   if (error) throw error;
   return data;
 }
