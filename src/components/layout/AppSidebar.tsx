@@ -7,6 +7,7 @@ import {
   Database,
   Settings,
   LogOut,
+  Users,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -85,6 +86,30 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      {appUser?.is_admin && (
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-widest">Admin</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/admin/usuarios"
+                      className="hover:bg-sidebar-accent transition-colors"
+                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                    >
+                      <Users className="mr-2 h-4 w-4" />
+                      {!collapsed && <span>Usuários</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      )}
 
       <SidebarFooter className="border-t border-sidebar-border px-4 py-3 space-y-2">
         {!collapsed && appUser && (

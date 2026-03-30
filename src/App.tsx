@@ -19,6 +19,8 @@ import UpdatePasswordPage from "./pages/UpdatePasswordPage";
 import WaitingApprovalPage from "./pages/WaitingApprovalPage";
 import BlockedAccessPage from "./pages/BlockedAccessPage";
 import NotFound from "./pages/NotFound";
+import AdminUsersPage from "./pages/AdminUsersPage";
+import { AdminRoute } from "@/components/auth/AdminRoute";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +53,7 @@ const App = () => (
                       <Route path="/hedges" element={<Hedges />} />
                       <Route path="/cadastros" element={<Cadastros />} />
                       <Route path="/configuracoes" element={<Settings />} />
+                      <Route path="/admin/usuarios" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </AppLayout>
