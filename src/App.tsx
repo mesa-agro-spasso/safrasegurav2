@@ -53,6 +53,7 @@ const App = () => (
                       <Route path="/hedges" element={<Hedges />} />
                       <Route path="/cadastros" element={<Cadastros />} />
                       <Route path="/configuracoes" element={<Settings />} />
+                      <Route path="/admin/usuarios" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </AppLayout>
