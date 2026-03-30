@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_users: {
+        Row: {
+          access_level: string
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          is_admin: boolean
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          access_level?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          is_admin?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          access_level?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          is_admin?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -907,10 +946,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_set_user_access: {
+        Args: {
+          p_access_level: string
+          p_is_admin?: boolean
+          p_status: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       create_pricing_run_from_daily_table: {
         Args: { p_daily_table_param_id: string }
         Returns: string
       }
+      current_user_has_full_access: { Args: never; Returns: boolean }
+      current_user_is_active: { Args: never; Returns: boolean }
+      current_user_is_admin: { Args: never; Returns: boolean }
       promote_pricing_run_item_to_operation: {
         Args: { p_item_id: string }
         Returns: string
