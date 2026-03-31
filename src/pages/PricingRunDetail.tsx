@@ -14,7 +14,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { LoadingState } from "@/components/shared/LoadingState";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import {
-  ArrowLeft, ChevronRight, Search, Filter, Loader2, ArrowUpRight,
+  ArrowLeft, ChevronRight, Search, Filter, Loader2, ArrowUpRight, RefreshCw,
 } from "lucide-react";
 import {
   fetchPricingRunById,
