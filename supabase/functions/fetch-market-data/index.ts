@@ -335,14 +335,17 @@ Deno.serve(async (req: Request) => {
       }
 
       // Merge into existing market_data preserving other commodity data
+      // STANDARD: usd_brl (not usd_brl_spot)
       const updatedMarketData = {
         ...existingMarketData,
-        usd_brl_spot: usdBrl ?? (existingMarketData as Record<string, unknown>).usd_brl_spot,
+        usd_brl: usdBrl ?? (existingMarketData as Record<string, unknown>).usd_brl ?? (existingMarketData as Record<string, unknown>).usd_brl_spot,
         [`${commodity}_futures`]: futuresMap,
         [`${commodity}_futures_detail`]: futures,
         updated_at: fetchedAt,
         source: "yahoo_finance",
       };
+      // Remove legacy key if present
+      delete (updatedMarketData as Record<string, unknown>).usd_brl_spot;
 
       const { error: updateError } = await supabase
         .from("daily_table_params")
