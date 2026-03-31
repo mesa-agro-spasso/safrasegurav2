@@ -7,9 +7,9 @@ import { AuthProvider } from "@/providers/AuthProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Dashboard from "./pages/Dashboard";
-import NewSimulation from "./pages/NewSimulation";
-import Simulations from "./pages/Simulations";
-import SimulationDetail from "./pages/SimulationDetail";
+import DailyTable from "./pages/DailyTable";
+import PricingRuns from "./pages/PricingRuns";
+import PricingRunDetail from "./pages/PricingRunDetail";
 import OperationsPage from "./pages/OperationsPage";
 import Hedges from "./pages/Hedges";
 import Cadastros from "./pages/Cadastros";
@@ -46,9 +46,9 @@ const App = () => (
                   <AppLayout>
                     <Routes>
                       <Route path="/" element={<Dashboard />} />
-                      <Route path="/nova-simulacao" element={<NewSimulation />} />
-                      <Route path="/simulacoes" element={<Simulations />} />
-                      <Route path="/simulacoes/:id" element={<SimulationDetail />} />
+                      <Route path="/daily-table" element={<DailyTable />} />
+                      <Route path="/pricing-runs" element={<PricingRuns />} />
+                      <Route path="/pricing-runs/:id" element={<PricingRunDetail />} />
                       <Route path="/operacoes" element={<OperationsPage />} />
                       <Route path="/hedges" element={<Hedges />} />
                       <Route path="/cadastros" element={<Cadastros />} />
