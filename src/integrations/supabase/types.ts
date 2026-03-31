@@ -232,13 +232,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "insurance_quotes_run_id_fkey"
-            columns: ["run_id"]
-            isOneToOne: false
-            referencedRelation: "pricing_runs"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "insurance_quotes_scenario_id_fkey"
             columns: ["scenario_id"]
             isOneToOne: false
@@ -630,13 +623,6 @@ export type Database = {
             referencedRelation: "locations"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "operations_pricing_run_id_fkey"
-            columns: ["pricing_run_id"]
-            isOneToOne: false
-            referencedRelation: "pricing_runs"
-            referencedColumns: ["id"]
-          },
         ]
       }
       pricing_inputs: {
@@ -865,43 +851,77 @@ export type Database = {
           total_cost_brl?: number | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "pricing_results_run_id_fkey"
-            columns: ["run_id"]
-            isOneToOne: true
-            referencedRelation: "pricing_runs"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       pricing_run_items: {
         Row: {
+          breakeven_basis_brl: number | null
+          combination_name: string | null
           commodity: string | null
           created_at: string | null
+          exchange_rate: number | null
+          futures_price: number | null
+          gross_price_brl: number | null
           id: string
+          input_snapshot: Json | null
+          item_index: number | null
+          origination_price_brl: number | null
+          payment_date: string | null
           pricing_run_id: string | null
-          result: Json | null
-          scenario: string | null
-          selected: boolean | null
+          purchased_basis_brl: number | null
+          reception_date: string | null
+          result_snapshot: Json | null
+          sale_date: string | null
+          status: string | null
+          target_basis_brl: number | null
+          ticker: string | null
+          warehouse: string | null
         }
         Insert: {
+          breakeven_basis_brl?: number | null
+          combination_name?: string | null
           commodity?: string | null
           created_at?: string | null
+          exchange_rate?: number | null
+          futures_price?: number | null
+          gross_price_brl?: number | null
           id?: string
+          input_snapshot?: Json | null
+          item_index?: number | null
+          origination_price_brl?: number | null
+          payment_date?: string | null
           pricing_run_id?: string | null
-          result?: Json | null
-          scenario?: string | null
-          selected?: boolean | null
+          purchased_basis_brl?: number | null
+          reception_date?: string | null
+          result_snapshot?: Json | null
+          sale_date?: string | null
+          status?: string | null
+          target_basis_brl?: number | null
+          ticker?: string | null
+          warehouse?: string | null
         }
         Update: {
+          breakeven_basis_brl?: number | null
+          combination_name?: string | null
           commodity?: string | null
           created_at?: string | null
+          exchange_rate?: number | null
+          futures_price?: number | null
+          gross_price_brl?: number | null
           id?: string
+          input_snapshot?: Json | null
+          item_index?: number | null
+          origination_price_brl?: number | null
+          payment_date?: string | null
           pricing_run_id?: string | null
-          result?: Json | null
-          scenario?: string | null
-          selected?: boolean | null
+          purchased_basis_brl?: number | null
+          reception_date?: string | null
+          result_snapshot?: Json | null
+          sale_date?: string | null
+          status?: string | null
+          target_basis_brl?: number | null
+          ticker?: string | null
+          warehouse?: string | null
         }
         Relationships: [
           {
@@ -915,66 +935,39 @@ export type Database = {
       }
       pricing_runs: {
         Row: {
-          created_at: string
-          created_by: string | null
+          completed_at: string | null
+          daily_table_param_id: string | null
           engine_name: string | null
-          engine_result: Json
           engine_version: string | null
-          error_message: string | null
           id: string
-          input_id: string
-          input_snapshot: Json
-          market_snapshot: Json
-          parameters_snapshot: Json
-          status: string
-          updated_at: string
+          input_payload: Json | null
+          output_summary: Json | null
+          started_at: string | null
+          status: string | null
         }
         Insert: {
-          created_at?: string
-          created_by?: string | null
+          completed_at?: string | null
+          daily_table_param_id?: string | null
           engine_name?: string | null
-          engine_result?: Json
           engine_version?: string | null
-          error_message?: string | null
           id?: string
-          input_id: string
-          input_snapshot?: Json
-          market_snapshot?: Json
-          parameters_snapshot?: Json
-          status?: string
-          updated_at?: string
+          input_payload?: Json | null
+          output_summary?: Json | null
+          started_at?: string | null
+          status?: string | null
         }
         Update: {
-          created_at?: string
-          created_by?: string | null
+          completed_at?: string | null
+          daily_table_param_id?: string | null
           engine_name?: string | null
-          engine_result?: Json
           engine_version?: string | null
-          error_message?: string | null
           id?: string
-          input_id?: string
-          input_snapshot?: Json
-          market_snapshot?: Json
-          parameters_snapshot?: Json
-          status?: string
-          updated_at?: string
+          input_payload?: Json | null
+          output_summary?: Json | null
+          started_at?: string | null
+          status?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "pricing_runs_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pricing_runs_input_id_fkey"
-            columns: ["input_id"]
-            isOneToOne: false
-            referencedRelation: "pricing_inputs"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles: {
         Row: {

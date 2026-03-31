@@ -368,76 +368,58 @@ function runCustomPricingTable(combinations: Record<string, unknown>[], tradeDat
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  const json = (obj: unknown, status = 200) =>
+    new Response(JSON.stringify(obj), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
   try {
     const body = await req.json();
     const dailyTableParamId = body.daily_table_param_id;
 
-    if (!dailyTableParamId) {
-      return new Response(JSON.stringify({ success: false, error: "daily_table_param_id is required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    if (!dailyTableParamId) return json({ success: false, error: "daily_table_param_id is required" }, 400);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // 1. Fetch daily_table_params
-    const { data: params, error: paramsError } = await supabase.from("daily_table_params").select("*").eq("id", dailyTableParamId).single();
-    if (paramsError || !params) {
-      return new Response(JSON.stringify({ success: false, error: paramsError?.message ?? "not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    const { data: params, error: paramsError } = await supabase
+      .from("daily_table_params")
+      .select("*")
+      .eq("id", dailyTableParamId)
+      .single();
 
-    const rawCombinations = params.combinations;
-    const combinations: Record<string, unknown>[] = Array.isArray(rawCombinations) ? rawCombinations : [];
+    if (paramsError || !params) return json({ success: false, error: paramsError?.message ?? "not found" }, 404);
+
+    const combinations: Record<string, unknown>[] = Array.isArray(params.combinations) ? params.combinations : [];
     const globalParams = (params.global_params as Record<string, unknown>) ?? {};
 
-    if (combinations.length === 0) {
-      return new Response(JSON.stringify({ success: false, error: "No combinations found" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    if (combinations.length === 0) return json({ success: false, error: "No combinations found" }, 400);
 
     const tradeDate = (globalParams["trade_date"] as string) ?? new Date().toISOString().substring(0, 10);
 
-    // 2. Create pricing_run (using actual schema: input_id is required, use a dummy or existing pricing_input)
-    // The schema requires input_id (uuid FK to pricing_inputs). We create a minimal pricing_input first.
-    // Pick the first commodity from the combinations, or default to soybean
-    const firstCommodityCode = (combinations[0]?.["commodity"] as string) ?? "soybean";
-    const commodityIdMap: Record<string, string> = { soybean: "4609fc30-4dd5-4197-b48f-69172e510fc3", corn: "baee0b58-5137-4fa1-be96-287870a3ee2f" };
-    const commodityId = commodityIdMap[firstCommodityCode] ?? commodityIdMap["soybean"];
-
-    const { data: inputData, error: inputError } = await supabase
-      .from("pricing_inputs")
-      .insert({
-        commodity_id: commodityId,
-        payment_date: tradeDate,
-        sale_date: tradeDate,
-        simulation_date: tradeDate,
-        notes: `Auto-created by run-daily-table for param_id=${dailyTableParamId}`,
-      })
-      .select("id")
-      .single();
-
-    if (inputError || !inputData) {
-      console.error("Failed to create pricing_input:", inputError);
-      return new Response(JSON.stringify({ success: false, error: `Failed to create pricing_input: ${inputError?.message}` }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
+    // 2. Create pricing_run (aligned with actual schema)
     const { data: runData, error: runError } = await supabase
       .from("pricing_runs")
       .insert({
-        input_id: inputData.id,
+        daily_table_param_id: dailyTableParamId,
         status: "running",
         engine_name: "run-custom-pricing",
         engine_version: "ts-faithful-v1",
-        input_snapshot: { daily_table_param_id: dailyTableParamId, global_params: globalParams, combinations_count: combinations.length },
-        market_snapshot: params.market_data ?? {},
-        parameters_snapshot: globalParams,
-        engine_result: {},
+        input_payload: {
+          daily_table_param_id: dailyTableParamId,
+          global_params: globalParams,
+          market_data: params.market_data ?? {},
+          combinations_count: combinations.length,
+          trade_date: tradeDate,
+        },
+        started_at: new Date().toISOString(),
       })
       .select("id")
       .single();
 
     if (runError || !runData) {
       console.error("Failed to create pricing_run:", runError);
-      return new Response(JSON.stringify({ success: false, error: runError?.message ?? "Failed to create run" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return json({ success: false, error: runError?.message ?? "Failed to create run" }, 500);
     }
 
     const runId = runData.id;
@@ -446,45 +428,129 @@ Deno.serve(async (req) => {
       // 3. Execute pricing engine
       const results = runCustomPricingTable(combinations, tradeDate);
 
-      // 4. Insert pricing_run_items (actual schema: id, pricing_run_id, commodity, scenario, result, selected)
-      const items = results.map((r, idx) => ({
-        pricing_run_id: runId,
-        commodity: r["commodity"] as string,
-        scenario: (r["display_name"] as string) ?? `Item ${idx + 1}`,
-        result: r, // full result as JSONB
-        selected: false,
-      }));
+      // 4. Insert pricing_run_items (aligned with actual schema columns)
+      const items = results.map((r, idx) => {
+        const engineResult = r["engine_result"] as EngineResult | undefined;
+        const insurance = r["insurance"] as Record<string, Record<string, number>> | undefined;
+
+        return {
+          pricing_run_id: runId,
+          item_index: idx + 1,
+          combination_name: (r["display_name"] as string) ?? `Item ${idx + 1}`,
+          commodity: r["commodity"] as string,
+          warehouse: (r["warehouse_id"] as string) ?? null,
+          ticker: (r["ticker"] as string) ?? null,
+          payment_date: (r["payment_date"] as string) ?? null,
+          sale_date: (r["sale_date"] as string) ?? null,
+          reception_date: (r["grain_reception_date"] as string) ?? null,
+          futures_price: engineResult?.futures_price_brl ?? null,
+          exchange_rate: engineResult?.exchange_rate ?? null,
+          gross_price_brl: engineResult?.origination_price_gross_brl ?? null,
+          origination_price_brl: r["origination_price_brl"] as number ?? null,
+          target_basis_brl: (r["target_basis_brl"] as number) ?? null,
+          purchased_basis_brl: engineResult?.purchased_basis_brl ?? null,
+          breakeven_basis_brl: engineResult?.breakeven_basis_brl ?? null,
+          status: "calculated",
+          input_snapshot: {
+            commodity: r["commodity"],
+            warehouse_id: r["warehouse_id"],
+            display_name: r["display_name"],
+            payment_date: r["payment_date"],
+            sale_date: r["sale_date"],
+            grain_reception_date: r["grain_reception_date"],
+            trade_date_used: r["trade_date_used"],
+            target_basis_brl: r["target_basis_brl"],
+            ticker: r["ticker"],
+            additional_discount_brl: r["additional_discount_brl"],
+          },
+          result_snapshot: {
+            origination_price_brl: r["origination_price_brl"],
+            gross_price_brl: engineResult?.origination_price_gross_brl,
+            net_price_brl: engineResult?.origination_price_net_brl,
+            futures_price_brl: engineResult?.futures_price_brl,
+            futures_price_usd: engineResult?.futures_price_usd,
+            exchange_rate: engineResult?.exchange_rate,
+            purchased_basis_brl: engineResult?.purchased_basis_brl,
+            breakeven_basis_brl: engineResult?.breakeven_basis_brl,
+            purchased_basis_usd: engineResult?.purchased_basis_usd,
+            breakeven_basis_usd: engineResult?.breakeven_basis_usd,
+            costs: engineResult?.costs,
+            insurance: insurance,
+            insurance_type: engineResult?.insurance_type,
+            insurance_strike_brl: engineResult?.insurance_strike_brl,
+            max_loss_counterparty_brl: engineResult?.max_loss_counterparty_brl,
+            convergence_iterations: engineResult?.convergence_iterations,
+            engine_version: "ts-faithful-v1",
+          },
+        };
+      });
 
       if (items.length > 0) {
         const { error: itemsError } = await supabase.from("pricing_run_items").insert(items);
-        if (itemsError) { console.error("Failed to insert items:", itemsError); throw new Error(`Failed to insert items: ${itemsError.message}`); }
+        if (itemsError) {
+          console.error("Failed to insert items:", itemsError);
+          throw new Error(`Failed to insert items: ${itemsError.message}`);
+        }
       }
 
       // 5. Update run to completed
-      const engineResultSummary = {
+      const outputSummary = {
         items_created: results.length,
         engine_version: "ts-faithful-v1",
-        message: "Run created with faithful TypeScript engine (ported from Python)",
-        sample_result: results.length > 0 ? { origination_price_brl: results[0]["origination_price_brl"], commodity: results[0]["commodity"] } : null,
+        message: "Run completed with faithful TypeScript engine (ported from Python)",
+        sample_result: results.length > 0
+          ? { origination_price_brl: results[0]["origination_price_brl"], commodity: results[0]["commodity"], display_name: results[0]["display_name"] }
+          : null,
       };
 
       await supabase.from("pricing_runs").update({
         status: "completed",
-        engine_result: engineResultSummary,
+        completed_at: new Date().toISOString(),
+        output_summary: outputSummary,
       }).eq("id", runId);
 
-      return new Response(JSON.stringify({
-        success: true, pricing_run_id: runId, calculated_items: results.length,
-        warning_count: 0, engine_version: "ts-faithful-v1", output_unit: "R$/sc",
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      // 6. Update daily_table_params.results with the engine output
+      await supabase.from("daily_table_params").update({
+        results: {
+          generated_at: new Date().toISOString(),
+          pricing_run_id: runId,
+          items_count: results.length,
+          engine_version: "ts-faithful-v1",
+          items: results.map((r) => ({
+            display_name: r["display_name"],
+            commodity: r["commodity"],
+            origination_price_brl: r["origination_price_brl"],
+            gross_price_brl: r["gross_price_brl"],
+            purchased_basis_brl: r["purchased_basis_brl"],
+            breakeven_basis_brl: r["breakeven_basis_brl"],
+            futures_price_brl: r["futures_price_brl"],
+            costs: (r["engine_result"] as EngineResult)?.costs,
+            insurance: r["insurance"],
+          })),
+        },
+        updated_at: new Date().toISOString(),
+      }).eq("id", dailyTableParamId);
+
+      return json({
+        success: true,
+        pricing_run_id: runId,
+        calculated_items: results.length,
+        warning_count: 0,
+        engine_version: "ts-faithful-v1",
+        output_unit: "R$/sc",
+      });
 
     } catch (engineErr) {
-      await supabase.from("pricing_runs").update({ status: "failed", error_message: String(engineErr), engine_result: { error: String(engineErr) } }).eq("id", runId);
       console.error("Engine error:", engineErr);
-      return new Response(JSON.stringify({ success: false, error: String(engineErr) }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      await supabase.from("pricing_runs").update({
+        status: "failed",
+        completed_at: new Date().toISOString(),
+        output_summary: { error: String(engineErr) },
+      }).eq("id", runId);
+      return json({ success: false, error: String(engineErr) }, 500);
     }
   } catch (err) {
     console.error("Unexpected error:", err);
-    return new Response(JSON.stringify({ success: false, error: String(err) }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return json({ success: false, error: String(err) }, 500);
   }
 });
