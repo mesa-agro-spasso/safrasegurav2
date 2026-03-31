@@ -38,18 +38,26 @@ export default function PricingRunDetail() {
   const [filterCommodity, setFilterCommodity] = useState("all");
   const [promoting, setPromoting] = useState<string | null>(null);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (withRetry = false) => {
     if (!id) return;
-    const [runData, itemsData] = await Promise.all([
-      fetchPricingRunById(id),
-      fetchRunItems(id),
-    ]);
+
+    let runData: any = null;
+    const maxAttempts = withRetry ? 6 : 1;
+    for (let i = 0; i < maxAttempts; i++) {
+      try {
+        runData = await fetchPricingRunById(id);
+        if (runData) break;
+      } catch { /* not ready */ }
+      if (i < maxAttempts - 1) await new Promise((r) => setTimeout(r, 500));
+    }
+
+    const itemsData = runData ? await fetchRunItems(id) : [];
     setRun(runData);
     setItems(itemsData);
   }, [id]);
 
   useEffect(() => {
-    loadData()
+    loadData(true)
       .catch(() => toast.error("Erro ao carregar run"))
       .finally(() => setLoading(false));
   }, [loadData]);
