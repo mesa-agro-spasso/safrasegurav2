@@ -23,6 +23,7 @@ import {
   saveDailyTableField,
   fetchMarketDataFromEdge,
   executePricing,
+  fetchPricingRunById,
 } from "@/lib/services/pricing-engine";
 import { fmtBRL, fmtNum, fmtFx, fmtDateTime, fmtDate } from "@/lib/formatters";
 import { toast } from "sonner";
@@ -356,12 +357,31 @@ export default function DailyTable() {
     setRunningPricing(true);
     try {
       const result = await executePricing();
-      if (result.success) {
+      console.log("executePricing result:", result);
+      if (result.success && result.pricing_run_id) {
+        const runId = result.pricing_run_id;
+        console.log("pricing_run_id:", runId);
         toast.success(`Pricing executado — ${result.calculated_items ?? 0} itens`);
         await loadParams();
-        if (result.pricing_run_id) {
-          navigate(`/pricing-runs/${result.pricing_run_id}`);
+
+        // Retry fetching the run before navigating
+        let found = false;
+        for (let i = 0; i < 5; i++) {
+          try {
+            const run = await fetchPricingRunById(runId);
+            if (run) { found = true; break; }
+          } catch { /* not ready yet */ }
+          await new Promise((r) => setTimeout(r, 500));
         }
+
+        if (found) {
+          navigate(`/pricing-runs/${runId}`);
+        } else {
+          toast.info("Run ainda sendo processado. Verifique em Pricing Runs em alguns segundos.");
+        }
+      } else if (result.success) {
+        toast.success("Pricing executado com sucesso");
+        await loadParams();
       } else {
         toast.error("Erro: " + (result.error ?? "desconhecido"));
       }

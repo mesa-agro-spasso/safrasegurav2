@@ -14,7 +14,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { LoadingState } from "@/components/shared/LoadingState";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import {
-  ArrowLeft, ChevronRight, Search, Filter, Loader2, ArrowUpRight,
+  ArrowLeft, ChevronRight, Search, Filter, Loader2, ArrowUpRight, RefreshCw,
 } from "lucide-react";
 import {
   fetchPricingRunById,
@@ -38,18 +38,26 @@ export default function PricingRunDetail() {
   const [filterCommodity, setFilterCommodity] = useState("all");
   const [promoting, setPromoting] = useState<string | null>(null);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (withRetry = false) => {
     if (!id) return;
-    const [runData, itemsData] = await Promise.all([
-      fetchPricingRunById(id),
-      fetchRunItems(id),
-    ]);
+
+    let runData: any = null;
+    const maxAttempts = withRetry ? 6 : 1;
+    for (let i = 0; i < maxAttempts; i++) {
+      try {
+        runData = await fetchPricingRunById(id);
+        if (runData) break;
+      } catch { /* not ready */ }
+      if (i < maxAttempts - 1) await new Promise((r) => setTimeout(r, 500));
+    }
+
+    const itemsData = runData ? await fetchRunItems(id) : [];
     setRun(runData);
     setItems(itemsData);
   }, [id]);
 
   useEffect(() => {
-    loadData()
+    loadData(true)
       .catch(() => toast.error("Erro ao carregar run"))
       .finally(() => setLoading(false));
   }, [loadData]);
@@ -72,7 +80,14 @@ export default function PricingRunDetail() {
   };
 
   if (loading) return <LoadingState message="Carregando run..." />;
-  if (!run) return <div className="text-center py-20 text-muted-foreground">Run não encontrado.</div>;
+  if (!run) return (
+    <div className="text-center py-20 space-y-3">
+      <p className="text-muted-foreground">Run ainda sendo processado ou não encontrado.</p>
+      <Button variant="outline" size="sm" onClick={() => { setLoading(true); loadData(true).finally(() => setLoading(false)); }}>
+        <RefreshCw className="h-4 w-4 mr-1" /> Tentar novamente
+      </Button>
+    </div>
+  );
 
   // Filter items
   const commodities = [...new Set(items.map((i) => i.commodity).filter(Boolean))];
