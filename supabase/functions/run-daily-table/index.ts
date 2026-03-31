@@ -397,10 +397,15 @@ Deno.serve(async (req) => {
 
     // 2. Create pricing_run (using actual schema: input_id is required, use a dummy or existing pricing_input)
     // The schema requires input_id (uuid FK to pricing_inputs). We create a minimal pricing_input first.
+    // Pick the first commodity from the combinations, or default to soybean
+    const firstCommodityCode = (combinations[0]?.["commodity"] as string) ?? "soybean";
+    const commodityIdMap: Record<string, string> = { soybean: "4609fc30-4dd5-4197-b48f-69172e510fc3", corn: "baee0b58-5137-4fa1-be96-287870a3ee2f" };
+    const commodityId = commodityIdMap[firstCommodityCode] ?? commodityIdMap["soybean"];
+
     const { data: inputData, error: inputError } = await supabase
       .from("pricing_inputs")
       .insert({
-        commodity_id: "00000000-0000-0000-0000-000000000000", // placeholder
+        commodity_id: commodityId,
         payment_date: tradeDate,
         sale_date: tradeDate,
         simulation_date: tradeDate,
