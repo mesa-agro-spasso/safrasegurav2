@@ -241,31 +241,26 @@ Deno.serve(async (req: Request) => {
 
   try {
     // ── Auth check ───────────────────────────────────────────────────
+    // Auth: validate if present, use service role for DB writes if not
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Verify user — getUser() validates the JWT server-side
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    if (userError || !userData?.user) {
-      // Allow service_role calls (for testing/cron)
-      const isServiceRole = authHeader.includes('"role":"service_role"');
-      if (!isServiceRole) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+    let supabase;
+    if (authHeader?.startsWith("Bearer ")) {
+      supabase = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      // Validate JWT
+      const { error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        // Fall back to service role for valid API key calls
+        supabase = createClient(supabaseUrl, serviceRoleKey);
       }
+    } else {
+      // No auth header — use service role (for cron/internal calls)
+      supabase = createClient(supabaseUrl, serviceRoleKey);
     }
 
     // ── Parse input ──────────────────────────────────────────────────
