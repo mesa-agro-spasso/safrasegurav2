@@ -523,69 +523,120 @@ export type Database = {
       operations: {
         Row: {
           armazem_id: string | null
+          breakeven_basis_brl: number | null
           closed_price_brl: number | null
+          commodity: string | null
           commodity_id: string
+          costs_snapshot: Json | null
           counterparty_id: string | null
           created_at: string
           created_by: string | null
+          display_name: string | null
+          exchange_rate: number | null
+          futures_price: number | null
           grain_reception_date: string | null
+          gross_price_brl: number | null
           id: string
           include_insurance: boolean
+          insurance_premium_brl: number | null
+          insurance_strategy: string | null
+          insurance_strike: number | null
+          maturity: string | null
           metadata: Json
           notes: string | null
+          operation_date: string | null
           operation_number: number
+          origination_price_brl: number | null
           payment_date: string | null
           praca_id: string | null
           pricing_run_id: string | null
+          pricing_snapshot: Json | null
+          purchased_basis_brl: number | null
           sale_date: string | null
           status: string
+          ticker: string | null
           unit: string
           updated_at: string
           volume: number | null
+          warehouse: string | null
         }
         Insert: {
           armazem_id?: string | null
+          breakeven_basis_brl?: number | null
           closed_price_brl?: number | null
+          commodity?: string | null
           commodity_id: string
+          costs_snapshot?: Json | null
           counterparty_id?: string | null
           created_at?: string
           created_by?: string | null
+          display_name?: string | null
+          exchange_rate?: number | null
+          futures_price?: number | null
           grain_reception_date?: string | null
+          gross_price_brl?: number | null
           id?: string
           include_insurance?: boolean
+          insurance_premium_brl?: number | null
+          insurance_strategy?: string | null
+          insurance_strike?: number | null
+          maturity?: string | null
           metadata?: Json
           notes?: string | null
+          operation_date?: string | null
           operation_number?: number
+          origination_price_brl?: number | null
           payment_date?: string | null
           praca_id?: string | null
           pricing_run_id?: string | null
+          pricing_snapshot?: Json | null
+          purchased_basis_brl?: number | null
           sale_date?: string | null
           status?: string
+          ticker?: string | null
           unit?: string
           updated_at?: string
           volume?: number | null
+          warehouse?: string | null
         }
         Update: {
           armazem_id?: string | null
+          breakeven_basis_brl?: number | null
           closed_price_brl?: number | null
+          commodity?: string | null
           commodity_id?: string
+          costs_snapshot?: Json | null
           counterparty_id?: string | null
           created_at?: string
           created_by?: string | null
+          display_name?: string | null
+          exchange_rate?: number | null
+          futures_price?: number | null
           grain_reception_date?: string | null
+          gross_price_brl?: number | null
           id?: string
           include_insurance?: boolean
+          insurance_premium_brl?: number | null
+          insurance_strategy?: string | null
+          insurance_strike?: number | null
+          maturity?: string | null
           metadata?: Json
           notes?: string | null
+          operation_date?: string | null
           operation_number?: number
+          origination_price_brl?: number | null
           payment_date?: string | null
           praca_id?: string | null
           pricing_run_id?: string | null
+          pricing_snapshot?: Json | null
+          purchased_basis_brl?: number | null
           sale_date?: string | null
           status?: string
+          ticker?: string | null
           unit?: string
           updated_at?: string
           volume?: number | null
+          warehouse?: string | null
         }
         Relationships: [
           {
