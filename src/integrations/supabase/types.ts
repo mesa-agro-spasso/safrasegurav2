@@ -166,6 +166,36 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_table_params: {
+        Row: {
+          combinations: Json | null
+          created_at: string | null
+          global_params: Json | null
+          id: string
+          market_data: Json | null
+          results: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          combinations?: Json | null
+          created_at?: string | null
+          global_params?: Json | null
+          id: string
+          market_data?: Json | null
+          results?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          combinations?: Json | null
+          created_at?: string | null
+          global_params?: Json | null
+          id?: string
+          market_data?: Json | null
+          results?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       insurance_quotes: {
         Row: {
           carry_brl: number | null
@@ -840,6 +870,44 @@ export type Database = {
             foreignKeyName: "pricing_results_run_id_fkey"
             columns: ["run_id"]
             isOneToOne: true
+            referencedRelation: "pricing_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pricing_run_items: {
+        Row: {
+          commodity: string | null
+          created_at: string | null
+          id: string
+          pricing_run_id: string | null
+          result: Json | null
+          scenario: string | null
+          selected: boolean | null
+        }
+        Insert: {
+          commodity?: string | null
+          created_at?: string | null
+          id?: string
+          pricing_run_id?: string | null
+          result?: Json | null
+          scenario?: string | null
+          selected?: boolean | null
+        }
+        Update: {
+          commodity?: string | null
+          created_at?: string | null
+          id?: string
+          pricing_run_id?: string | null
+          result?: Json | null
+          scenario?: string | null
+          selected?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_run_items_pricing_run_id_fkey"
+            columns: ["pricing_run_id"]
+            isOneToOne: false
             referencedRelation: "pricing_runs"
             referencedColumns: ["id"]
           },
