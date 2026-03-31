@@ -80,7 +80,14 @@ export default function PricingRunDetail() {
   };
 
   if (loading) return <LoadingState message="Carregando run..." />;
-  if (!run) return <div className="text-center py-20 text-muted-foreground">Run não encontrado.</div>;
+  if (!run) return (
+    <div className="text-center py-20 space-y-3">
+      <p className="text-muted-foreground">Run ainda sendo processado ou não encontrado.</p>
+      <Button variant="outline" size="sm" onClick={() => { setLoading(true); loadData(true).finally(() => setLoading(false)); }}>
+        <RefreshCw className="h-4 w-4 mr-1" /> Tentar novamente
+      </Button>
+    </div>
+  );
 
   // Filter items
   const commodities = [...new Set(items.map((i) => i.commodity).filter(Boolean))];
