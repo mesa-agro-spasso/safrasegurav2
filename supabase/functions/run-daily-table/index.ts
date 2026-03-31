@@ -386,7 +386,8 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ success: false, error: paramsError?.message ?? "not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const combinations = (params.combinations as Record<string, unknown>[]) ?? [];
+    const rawCombinations = params.combinations;
+    const combinations: Record<string, unknown>[] = Array.isArray(rawCombinations) ? rawCombinations : [];
     const globalParams = (params.global_params as Record<string, unknown>) ?? {};
 
     if (combinations.length === 0) {
