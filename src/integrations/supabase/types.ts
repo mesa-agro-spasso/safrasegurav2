@@ -864,7 +864,9 @@ export type Database = {
           gross_price_brl: number | null
           id: string
           input_snapshot: Json | null
+          is_promoted_to_operation: boolean | null
           item_index: number | null
+          operation_id: string | null
           origination_price_brl: number | null
           payment_date: string | null
           pricing_run_id: string | null
@@ -887,7 +889,9 @@ export type Database = {
           gross_price_brl?: number | null
           id?: string
           input_snapshot?: Json | null
+          is_promoted_to_operation?: boolean | null
           item_index?: number | null
+          operation_id?: string | null
           origination_price_brl?: number | null
           payment_date?: string | null
           pricing_run_id?: string | null
@@ -910,7 +914,9 @@ export type Database = {
           gross_price_brl?: number | null
           id?: string
           input_snapshot?: Json | null
+          is_promoted_to_operation?: boolean | null
           item_index?: number | null
+          operation_id?: string | null
           origination_price_brl?: number | null
           payment_date?: string | null
           pricing_run_id?: string | null
