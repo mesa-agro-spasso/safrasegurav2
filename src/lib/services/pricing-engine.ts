@@ -29,12 +29,25 @@ export interface ExecutePricingResponse {
   error?: string;
 }
 
+export interface FetchMarketDataResponse {
+  success: boolean;
+  commodity: string;
+  usd_brl: number | null;
+  futures: Array<{ ticker: string; price: number | null; exp_date: string | null }>;
+  fetched_at: string;
+  source: string;
+  persisted: boolean;
+  daily_table_param_id: string | null;
+}
+
 export interface PromoteToOperationResponse {
   success: boolean;
   operation_id?: string;
   already_promoted?: boolean;
   error?: string;
 }
+
+// ===== DAILY TABLE PARAMS =====
 
 export async function fetchDailyTableParams() {
   const { data, error } = await db.from("daily_table_params").select("*").eq("id", "default").single();
@@ -56,6 +69,39 @@ export async function updateDailyTableParams(
   if (error) throw error;
 }
 
+export async function saveDailyTableField(
+  field: "market_data" | "global_params" | "combinations",
+  value: unknown
+) {
+  const { error } = await db.from("daily_table_params").update({
+    [field]: preserveNumericTypes(value),
+    updated_at: new Date().toISOString(),
+  }).eq("id", "default");
+  if (error) throw error;
+}
+
+// ===== FETCH MARKET DATA (Edge Function) =====
+
+export async function fetchMarketDataFromEdge(
+  commodity: string,
+  quantity = 6,
+  includeUsdBrl = true,
+  dailyTableParamId = "default"
+): Promise<FetchMarketDataResponse> {
+  const { data, error } = await supabase.functions.invoke("fetch-market-data", {
+    body: {
+      commodity,
+      quantity,
+      include_usd_brl: includeUsdBrl,
+      daily_table_param_id: dailyTableParamId,
+    },
+  });
+  if (error) throw error;
+  return data as FetchMarketDataResponse;
+}
+
+// ===== EXECUTE PRICING =====
+
 export async function executePricing(): Promise<ExecutePricingResponse> {
   const { data, error } = await supabase.functions.invoke("run-daily-table", {
     body: { daily_table_param_id: "default" },
@@ -64,17 +110,29 @@ export async function executePricing(): Promise<ExecutePricingResponse> {
   return data as ExecutePricingResponse;
 }
 
+// ===== PRICING RUNS =====
+
 export async function fetchPricingRuns() {
-  const { data, error } = await supabase.from("pricing_runs").select("*").order("created_at", { ascending: false });
+  const { data, error } = await supabase.from("pricing_runs").select("*").order("started_at", { ascending: false });
   if (error) throw error;
   return data ?? [];
 }
+
+export async function fetchPricingRunById(id: string) {
+  const { data, error } = await supabase.from("pricing_runs").select("*").eq("id", id).single();
+  if (error) throw error;
+  return data;
+}
+
+// ===== PRICING RUN ITEMS =====
 
 export async function fetchRunItems(runId: string) {
   const { data, error } = await db.from("pricing_run_items").select("*").eq("pricing_run_id", runId).order("item_index", { ascending: true });
   if (error) throw error;
   return data ?? [];
 }
+
+// ===== PROMOTE =====
 
 export async function promoteItem(itemId: string): Promise<PromoteToOperationResponse> {
   const { data, error } = await supabase.functions.invoke("promote-to-operation", {
@@ -83,6 +141,8 @@ export async function promoteItem(itemId: string): Promise<PromoteToOperationRes
   if (error) throw error;
   return data as PromoteToOperationResponse;
 }
+
+// ===== OPERATIONS =====
 
 export async function fetchOperations() {
   const { data, error } = await supabase.from("operations").select("*").order("created_at", { ascending: false });

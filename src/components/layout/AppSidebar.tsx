@@ -1,6 +1,6 @@
 import {
   LayoutDashboard,
-  PlusCircle,
+  TableProperties,
   LineChart,
   ClipboardList,
   Shield,
@@ -28,8 +28,8 @@ import {
 
 const navItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Nova Simulação", url: "/nova-simulacao", icon: PlusCircle },
-  { title: "Simulações", url: "/simulacoes", icon: LineChart },
+  { title: "Daily Table", url: "/daily-table", icon: TableProperties },
+  { title: "Pricing Runs", url: "/pricing-runs", icon: LineChart },
   { title: "Operações", url: "/operacoes", icon: ClipboardList },
   { title: "Hedges", url: "/hedges", icon: Shield },
   { title: "Cadastros", url: "/cadastros", icon: Database },
