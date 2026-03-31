@@ -23,6 +23,7 @@ import {
   saveDailyTableField,
   fetchMarketDataFromEdge,
   executePricing,
+  fetchPricingRunById,
 } from "@/lib/services/pricing-engine";
 import { fmtBRL, fmtNum, fmtFx, fmtDateTime, fmtDate } from "@/lib/formatters";
 import { toast } from "sonner";
